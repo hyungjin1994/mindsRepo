@@ -1,0 +1,367 @@
+// minds — 치매 예방 앱 스키마
+// 주 사용자: 어머니/장모님 (별도 계정으로 가입)
+// 보조 사용자: 자식·가족 (FamilyMember로 등록, 매직링크로 권한 한정 접근)
+//
+// User.id 는 Supabase auth.users UUID 를 미러링.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// =============================================================================
+// User & Family
+// =============================================================================
+
+model User {
+  id          String   @id @db.Uuid
+  email       String   @unique
+  name        String?
+  image       String?
+
+  birthYear   Int?     // 인지 게임 난이도 조정에 사용
+  timezone    String   @default("Asia/Seoul")
+  fontScale   Float    @default(1.2)   // 노년 친화 — 기본 큰 글씨
+  highContrast Boolean @default(false)
+
+  // 푸시 알림
+  pushEnabled Boolean  @default(false)
+  dndStart    String   @default("21:00")
+  dndEnd      String   @default("08:00")
+
+  // 포인트 잔액 (캐시)
+  points      Int      @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  onboardedAt DateTime?
+
+  familyMembers     FamilyMember[]
+  gamePlays         GamePlay[]
+  pointTxns         PointTransaction[]
+  payoutRequests    PointPayoutRequest[]
+  photos            Photo[]
+  receivedPosts     FamilyPost[]            @relation("PostRecipient")
+  workouts          Workout[]
+  medications       Medication[]
+  reminders         Reminder[]
+  healthCheckIns    HealthCheckIn[]
+  pushSubscriptions PushSubscription[]
+
+  @@map("users")
+}
+
+// 자식·가족 — User 계정 없이, 매직링크로 어머니 계정에 접근.
+// 한 명의 어머니가 여러 명의 자식을 등록 가능 (예: 아들/며느리/딸).
+model FamilyMember {
+  id          String    @id @default(cuid())
+  userId      String    @db.Uuid          // 소속 어머니
+  name        String                       // 호칭 (예: "큰아들", "며느리")
+  email       String?                      // 매직링크 발송용 (선택)
+  phoneNumber String?
+  role        FamilyRole @default(CHILD)
+
+  // 매직링크 토큰 — 자식이 사용하는 영구 access token
+  accessToken String    @unique @default(cuid())
+  isActive    Boolean   @default(true)
+
+  createdAt   DateTime  @default(now())
+  lastSeenAt  DateTime?
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sentPosts   FamilyPost[] @relation("PostSender")
+
+  @@index([userId])
+  @@index([accessToken])
+  @@map("family_members")
+}
+
+enum FamilyRole {
+  CHILD          // 아들/딸
+  CHILD_IN_LAW   // 며느리/사위
+  GRANDCHILD     // 손주
+  OTHER
+}
+
+model PushSubscription {
+  id         String   @id @default(cuid())
+  userId     String   @db.Uuid
+  endpoint   String   @unique
+  p256dh     String
+  auth       String
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+// =============================================================================
+// 인지 게임 & 포인트
+// =============================================================================
+
+enum GameType {
+  WORD_MATCH        // 단어 맞추기
+  MEMORY_IMAGE      // 그림 기억
+  NUMBER_CALC       // 간단 계산
+  COLOR_NAME        // 색깔 이름 맞추기 (스트룹 효과)
+  SEQUENCE_RECALL   // 순서 기억
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model GamePlay {
+  id          String     @id @default(cuid())
+  userId      String     @db.Uuid
+  gameType    GameType
+  difficulty  Difficulty @default(EASY)
+
+  score       Int                          // 정답 수 등 게임별 의미
+  totalItems  Int                          // 총 문항 수
+  durationSec Int                          // 소요 시간
+
+  pointsEarned Int       @default(0)
+
+  playedAt    DateTime   @default(now())
+
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, playedAt])
+  @@map("game_plays")
+}
+
+// 포인트 거래 내역 — 적립/사용/환전 모두 기록
+model PointTransaction {
+  id          String      @id @default(cuid())
+  userId      String      @db.Uuid
+  kind        PointTxnKind
+  amount      Int         // +적립, -차감
+  reason      String      // 사람이 읽을 설명 (예: "단어 맞추기 EASY 정답 8/10")
+  metadata    Json?       // gamePlayId, payoutRequestId 등 연결 정보
+
+  createdAt   DateTime    @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("point_transactions")
+}
+
+enum PointTxnKind {
+  EARN_GAME          // 게임으로 적립
+  EARN_CHECKIN       // 건강 체크인으로 적립
+  EARN_WORKOUT       // 운동 기록으로 적립
+  EARN_PHOTO         // 일상/식사 사진 업로드로 적립
+  ADJUSTMENT         // 수동 조정
+  PAYOUT             // 환전으로 차감
+}
+
+// 어머니가 환전 신청 → 자식이 매직링크에서 승인 → 실제 송금 후 완료 처리
+model PointPayoutRequest {
+  id              String        @id @default(cuid())
+  userId          String        @db.Uuid
+  points          Int                            // 환전할 포인트
+  cashAmount      Int                            // 원화 (예: 10p = 100원)
+  status          PayoutStatus  @default(REQUESTED)
+  note            String?                        // 어머니가 남긴 메모
+
+  createdAt       DateTime      @default(now())
+  approvedAt      DateTime?
+  completedAt     DateTime?
+  approvedByName  String?                        // 어느 자식이 승인했는지
+
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@map("point_payout_requests")
+}
+
+enum PayoutStatus {
+  REQUESTED      // 어머니가 신청
+  APPROVED       // 자식이 승인 (송금 예정)
+  COMPLETED      // 송금 완료
+  REJECTED       // 자식이 거절
+  CANCELLED      // 어머니가 취소
+}
+
+// =============================================================================
+// 사진 — 어머니가 직접 올리는 일상 / 식사
+// =============================================================================
+
+enum PhotoKind {
+  DAILY   // 일상 (산책 중 풍경, 사람 등)
+  MEAL    // 식사
+  OTHER
+}
+
+model Photo {
+  id         String    @id @default(cuid())
+  userId     String    @db.Uuid
+  kind       PhotoKind @default(DAILY)
+  url        String                     // Supabase Storage URL
+  thumbUrl   String?
+  caption    String?
+  takenAt    DateTime  @default(now())  // 어머니가 찍은 시점
+
+  createdAt  DateTime  @default(now())
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, takenAt])
+  @@map("photos")
+}
+
+// =============================================================================
+// 가족 피드 — 자식이 어머니에게 보내는 사진/메시지
+// =============================================================================
+
+enum PostKind {
+  MESSAGE
+  PHOTO
+  STICKER
+}
+
+model FamilyPost {
+  id            String     @id @default(cuid())
+  recipientId   String     @db.Uuid                 // 받는 어머니
+  senderId      String                              // FamilyMember.id (자식)
+  kind          PostKind   @default(MESSAGE)
+
+  text          String?
+  imageUrl      String?
+  imageThumb    String?
+
+  readAt        DateTime?                           // 어머니가 읽은 시각
+
+  createdAt     DateTime   @default(now())
+
+  recipient     User          @relation("PostRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  sender        FamilyMember  @relation("PostSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, createdAt])
+  @@index([senderId])
+  @@map("family_posts")
+}
+
+// =============================================================================
+// 운동 — 아쿠아워킹, 헬스 (어머니가 등록한 정기 운동)
+// =============================================================================
+
+enum WorkoutType {
+  AQUA_WALKING   // 아쿠아워킹
+  GYM            // 헬스
+  WALKING        // 그냥 걷기
+  YOGA
+  PHYSICAL_THERAPY  // 물리치료
+  OTHER
+}
+
+model Workout {
+  id          String      @id @default(cuid())
+  userId      String      @db.Uuid
+  type        WorkoutType
+  title       String                       // 예: "아쿠아워킹 - 화요일"
+
+  // 정기 일정 (요일별 반복)
+  schedule    Json?                        // { weekdays: [2, 4], time: "10:00" }
+
+  // 단발 기록도 가능
+  performedAt DateTime?                    // 실제 운동한 날
+  durationMin Int?
+  note        String?
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, performedAt])
+  @@map("workouts")
+}
+
+// =============================================================================
+// 약 & 일정 알림
+// =============================================================================
+
+model Medication {
+  id         String   @id @default(cuid())
+  userId     String   @db.Uuid
+  name       String                      // 약 이름
+  dosage     String?                     // 예: "1알", "2스푼"
+  schedule   Json                        // { times: ["08:00", "20:00"], everyDay: true }
+  startedAt  DateTime @default(now())
+  stoppedAt  DateTime?
+  note       String?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("medications")
+}
+
+model Reminder {
+  id          String       @id @default(cuid())
+  userId      String       @db.Uuid
+  kind        ReminderKind
+  title       String                            // 예: "병원 예약"
+  scheduledAt DateTime
+  note        String?
+
+  notified    Boolean      @default(false)
+  completed   Boolean      @default(false)
+
+  createdAt   DateTime     @default(now())
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, scheduledAt])
+  @@map("reminders")
+}
+
+enum ReminderKind {
+  MEDICATION
+  HOSPITAL
+  WORKOUT
+  FAMILY_EVENT
+  OTHER
+}
+
+// =============================================================================
+// 건강 체크인 — 매일 간단히 기록
+// =============================================================================
+
+model HealthCheckIn {
+  id          String   @id @default(cuid())
+  userId      String   @db.Uuid
+  date        DateTime @db.Date              // 하루 한 번 — date만 unique
+
+  sleepHours  Float?
+  mood        Int?                            // 1-5
+  appetite    Int?                            // 1-5
+  pain        Int?                            // 1-5 (관절·허리 등)
+  note        String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+  @@map("health_check_ins")
+}
