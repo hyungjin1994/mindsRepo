@@ -1,0 +1,226 @@
+"use client";
+
+import React, { useMemo, useState } from "react";
+import { ResultScreen } from "./WordMatchGame";
+
+// 숫자 계산 (NUMBER_CALC)
+// 0~50 범위의 간단한 더하기/빼기 문제를 풉니다. 4지선다.
+// 문제는 모두 코드 안에서 무작위로 만들어집니다 (외부 데이터 없음).
+
+type Question = {
+  a: number;
+  b: number;
+  op: "+" | "-";
+  answer: number;
+  options: number[];
+};
+
+const TOTAL = 10;
+
+function shuffle<T>(arr: T[]): T[] {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function randInt(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function makeQuestion(): Question {
+  const op: "+" | "-" = Math.random() < 0.5 ? "+" : "-";
+  let a: number;
+  let b: number;
+  let answer: number;
+  if (op === "+") {
+    a = randInt(0, 30);
+    b = randInt(0, 50 - a); // 합이 50을 넘지 않도록.
+    answer = a + b;
+  } else {
+    a = randInt(10, 50);
+    b = randInt(0, a); // 결과가 음수가 되지 않도록.
+    answer = a - b;
+  }
+
+  // 정답 주변의 그럴듯한 오답 3개를 만든다 (중복/음수 제외).
+  const wrongs = new Set<number>();
+  while (wrongs.size < 3) {
+    const delta = randInt(-5, 5);
+    const candidate = answer + delta;
+    if (candidate >= 0 && candidate <= 50 && candidate !== answer) {
+      wrongs.add(candidate);
+    }
+  }
+
+  return {
+    a,
+    b,
+    op,
+    answer,
+    options: shuffle([answer, ...Array.from(wrongs)]),
+  };
+}
+
+function buildQuestions(): Question[] {
+  return Array.from({ length: TOTAL }, () => makeQuestion());
+}
+
+type SubmitState = {
+  loading: boolean;
+  points: number | null;
+  error: string | null;
+};
+
+export default function NumberCalcGame({ userId }: { userId?: string }) {
+  const [questions, setQuestions] = useState<Question[]>(() => buildQuestions());
+  const [index, setIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [picked, setPicked] = useState<number | null>(null);
+  const [startedAt, setStartedAt] = useState(() => Date.now());
+  const [finishedAt, setFinishedAt] = useState<number | null>(null);
+  const [submit, setSubmit] = useState<SubmitState>({ loading: false, points: null, error: null });
+  const [round, setRound] = useState(0);
+
+  const current = questions[index];
+  const done = finishedAt !== null;
+
+  const durationSec = useMemo(() => {
+    const end = finishedAt ?? Date.now();
+    return Math.max(1, Math.round((end - startedAt) / 1000));
+  }, [finishedAt, startedAt]);
+
+  async function postResult(finalScore: number, end: number) {
+    setSubmit({ loading: true, points: null, error: null });
+    try {
+      const res = await fetch("/api/games/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gameType: "NUMBER_CALC",
+          difficulty: "EASY",
+          score: finalScore,
+          totalItems: TOTAL,
+          durationSec: Math.max(1, Math.round((end - startedAt) / 1000)),
+          // 개발용 대비: 로그인 사용자가 없을 때만 서버가 이 값을 사용합니다.
+          userId,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.ok) {
+        setSubmit({ loading: false, points: json.pointsEarned ?? 0, error: null });
+      } else {
+        setSubmit({ loading: false, points: null, error: json?.message ?? "다시 해주세요." });
+      }
+    } catch {
+      setSubmit({ loading: false, points: null, error: "점수를 저장하지 못했어요. 다시 해주세요." });
+    }
+  }
+
+  function choose(option: number) {
+    if (picked !== null || done) return;
+    setPicked(option);
+    const correct = option === current.answer;
+    const nextScore = correct ? score + 1 : score;
+    if (correct) setScore(nextScore);
+
+    window.setTimeout(() => {
+      if (index + 1 >= questions.length) {
+        const end = Date.now();
+        setFinishedAt(end);
+        void postResult(nextScore, end);
+      } else {
+        setIndex((i) => i + 1);
+        setPicked(null);
+      }
+    }, 900);
+  }
+
+  function restart() {
+    setQuestions(buildQuestions());
+    setIndex(0);
+    setScore(0);
+    setPicked(null);
+    setStartedAt(Date.now());
+    setFinishedAt(null);
+    setSubmit({ loading: false, points: null, error: null });
+    setRound((r) => r + 1);
+  }
+
+  if (done) {
+    return (
+      <ResultScreen
+        score={score}
+        total={TOTAL}
+        durationSec={durationSec}
+        submit={submit}
+        onRestart={restart}
+      />
+    );
+  }
+
+  const correctPick = picked === current.answer;
+
+  return (
+    <div key={round} className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <div>
+        <div className="flex items-center justify-between text-lg font-semibold text-zinc-700">
+          <span>문제</span>
+          <span aria-label={`전체 ${questions.length}문제 중 ${index + 1}번째`}>
+            {index + 1} / {questions.length}
+          </span>
+        </div>
+        <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-zinc-200">
+          <div
+            className="h-full rounded-full bg-yellow-400 transition-all"
+            style={{ width: `${Math.round((index / questions.length) * 100)}%` }}
+          />
+        </div>
+      </div>
+
+      <p className="mt-6 text-center text-xl text-zinc-700">계산해 보세요</p>
+      <p className="mt-3 text-center text-5xl font-bold text-zinc-900" aria-label={`${current.a} ${current.op === "+" ? "더하기" : "빼기"} ${current.b}`}>
+        {current.a} {current.op} {current.b} = ?
+      </p>
+
+      <div className="mt-8 grid grid-cols-2 gap-4">
+        {current.options.map((opt) => {
+          const isPicked = picked === opt;
+          const isAnswer = opt === current.answer;
+          const showCorrect = picked !== null && isAnswer;
+          const showWrong = isPicked && !isAnswer;
+          return (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => choose(opt)}
+              disabled={picked !== null}
+              aria-label={`답 ${opt}`}
+              className={
+                "min-h-[64px] w-full rounded-xl border-2 px-5 py-3 text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:cursor-default " +
+                (showCorrect
+                  ? "border-green-600 bg-green-100 text-green-900"
+                  : showWrong
+                    ? "border-red-500 bg-red-100 text-red-900"
+                    : "border-zinc-300 bg-white text-zinc-900 hover:bg-yellow-50")
+              }
+            >
+              {opt}
+            </button>
+          );
+        })}
+      </div>
+
+      {picked !== null && (
+        <p
+          role="status"
+          className={"mt-6 text-center text-2xl font-bold " + (correctPick ? "text-green-700" : "text-red-700")}
+        >
+          {correctPick ? "정답이에요!" : "다음엔 맞춰봐요!"}
+        </p>
+      )}
+    </div>
+  );
+}

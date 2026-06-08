@@ -42,7 +42,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## 기술 스택 (OnYou와 동일 패턴)
 
 - **프레임워크**: Next.js 16 (App Router, no src/, Tailwind v4)
-- **DB**: PostgreSQL on Supabase + Prisma 6.x
+- **DB**: PostgreSQL on Supabase + Prisma 7.x (Rust-free `client` 엔진 → `@prisma/adapter-pg` 드라이버 어댑터 필수. `lib/prisma.ts` 참고)
 - **인증**: Supabase Auth (`@supabase/ssr`)
 - **푸시**: Web Push (VAPID)
 - **AI** (선택): Anthropic Claude (`@anthropic-ai/sdk`)
@@ -80,7 +80,9 @@ prisma/
 
 ## Prisma 작업 워크플로우
 
-회사망에서는 SSL 가로채기 때문에 Prisma 엔진 다운로드가 실패함 (`binaries.prisma.sh`). 집 네트워크나 모바일 핫스팟에서만 실행:
+> **Prisma 7 메모**: v7의 `client` 엔진은 Rust-free라서 `prisma generate`가 더 이상 `binaries.prisma.sh`에서 엔진 바이너리를 받지 않음 → 아래 회사망 SSL 이슈는 대부분 해소됨. 단, 런타임에는 드라이버 어댑터(`@prisma/adapter-pg` + `pg`)가 **필수**이며 `lib/prisma.ts`에 이미 적용됨. `prisma generate`/`db push` 등 CLI는 `prisma.config.ts`가 `.env.local`을 로드하므로 그대로 동작함.
+
+(과거 메모) 회사망에서는 SSL 가로채기 때문에 Prisma 엔진 다운로드가 실패할 수 있었음 (`binaries.prisma.sh`). 문제가 재발하면 집 네트워크나 모바일 핫스팟에서 실행:
 
 ```powershell
 npx prisma generate    # client 생성

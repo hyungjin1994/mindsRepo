@@ -9,9 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
 }
 
 // =============================================================================
@@ -253,6 +251,17 @@ model FamilyPost {
   @@index([recipientId, createdAt])
   @@index([senderId])
   @@map("family_posts")
+}
+
+model MagicLink {
+  id         String   @id @default(cuid())
+  token      String   @unique
+  email      String
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+  usedAt     DateTime?
+
+  @@map("magic_links")
 }
 
 // =============================================================================

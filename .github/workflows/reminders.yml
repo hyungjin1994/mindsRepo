@@ -1,0 +1,22 @@
+name: Reminders dispatch
+
+# Calls the canonical reminder/notification dispatcher every 15 minutes.
+# Required repo secrets:
+#   APP_URL      e.g. https://minds.vercel.app
+#   CRON_SECRET  same value as the app's CRON_SECRET env var (authorizes the call)
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call /api/cron/reminders
+        run: |
+          curl -fsS -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.APP_URL }}/api/cron/reminders"
