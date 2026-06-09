@@ -21,7 +21,14 @@ const TARGET_BY_DIFFICULTY: Record<Difficulty, number> = { EASY: 5, MEDIUM: 7, H
 const LIT_MS: Record<Difficulty, number> = { EASY: 600, MEDIUM: 480, HARD: 360 };
 
 type Phase = "ready" | "showing" | "input" | "over";
-type SubmitState = { loading: boolean; points: number | null; error: string | null };
+type SubmitState = {
+  loading: boolean;
+  points: number | null;
+  error: string | null;
+  dailyEarned?: number;
+  dailyCap?: number;
+  capReached?: boolean;
+};
 
 export default function SequenceRecallGame({ userId, difficulty = "EASY" }: { userId?: string; difficulty?: Difficulty }) {
   const TARGET = TARGET_BY_DIFFICULTY[difficulty];
@@ -58,7 +65,15 @@ export default function SequenceRecallGame({ userId, difficulty = "EASY" }: { us
         }),
       });
       const json = await res.json().catch(() => ({}));
-      if (res.ok && json.ok) setSubmit({ loading: false, points: json.pointsEarned ?? 0, error: null });
+      if (res.ok && json.ok)
+        setSubmit({
+          loading: false,
+          points: json.pointsEarned ?? 0,
+          error: null,
+          dailyEarned: json.dailyEarned,
+          dailyCap: json.dailyCap,
+          capReached: json.capReached,
+        });
       else setSubmit({ loading: false, points: null, error: json?.message ?? "다시 해주세요." });
     } catch {
       setSubmit({ loading: false, points: null, error: "점수를 저장하지 못했어요. 다시 해주세요." });

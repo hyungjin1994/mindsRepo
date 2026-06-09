@@ -28,7 +28,45 @@ function buildDeck(pairs: number): Card[] {
   return shuffle(doubled).map((emoji, id) => ({ id, emoji, matched: false }));
 }
 
-type SubmitState = { loading: boolean; points: number | null; error: string | null };
+type SubmitState = {
+  loading: boolean;
+  points: number | null;
+  error: string | null;
+  dailyEarned?: number;
+  dailyCap?: number;
+  capReached?: boolean;
+};
+
+// 이모지를 Twemoji 컬러 일러스트(SVG)로 렌더. 글리프보다 또렷하고 카드를 꽉 채운다.
+// CDN 차단/실패 시 onError 로 원래 이모지 글자로 폴백한다.
+function twemojiUrl(emoji: string): string {
+  const cp = Array.from(emoji)
+    .map((c) => c.codePointAt(0)!.toString(16))
+    .join("-");
+  return `https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/${cp}.svg`;
+}
+
+function EmojiArt({ emoji }: { emoji: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <span className="text-5xl" aria-hidden="true">
+        {emoji}
+      </span>
+    );
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={twemojiUrl(emoji)}
+      alt=""
+      aria-hidden="true"
+      draggable={false}
+      onError={() => setFailed(true)}
+      className="h-4/5 w-4/5 object-contain drop-shadow-sm"
+    />
+  );
+}
 
 export default function MemoryMatchGame({ userId, difficulty = "EASY" }: { userId?: string; difficulty?: Difficulty }) {
   const PAIRS = PAIRS_BY_DIFFICULTY[difficulty];
@@ -66,7 +104,15 @@ export default function MemoryMatchGame({ userId, difficulty = "EASY" }: { userI
         }),
       });
       const json = await res.json().catch(() => ({}));
-      if (res.ok && json.ok) setSubmit({ loading: false, points: json.pointsEarned ?? 0, error: null });
+      if (res.ok && json.ok)
+        setSubmit({
+          loading: false,
+          points: json.pointsEarned ?? 0,
+          error: null,
+          dailyEarned: json.dailyEarned,
+          dailyCap: json.dailyCap,
+          capReached: json.capReached,
+        });
       else setSubmit({ loading: false, points: null, error: json?.message ?? "다시 해주세요." });
     } catch {
       setSubmit({ loading: false, points: null, error: "점수를 저장하지 못했어요. 다시 해주세요." });
@@ -139,15 +185,19 @@ export default function MemoryMatchGame({ userId, difficulty = "EASY" }: { userI
               disabled={isUp || lock}
               aria-label={isUp ? `${card.emoji} 카드` : "뒤집힌 카드"}
               className={
-                "flex aspect-square items-center justify-center rounded-2xl text-4xl transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300 " +
+                "flex aspect-square items-center justify-center rounded-2xl transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300 " +
                 (card.matched
-                  ? "bg-green-100 ring-2 ring-green-400"
+                  ? "bg-green-50 ring-2 ring-green-500"
                   : isUp
-                    ? "bg-white ring-2 ring-amber-300"
+                    ? "bg-amber-50 ring-2 ring-amber-300"
                     : "bg-amber-400 hover:bg-amber-300")
               }
             >
-              <span aria-hidden="true">{isUp ? card.emoji : "❓"}</span>
+              {isUp ? (
+                <EmojiArt emoji={card.emoji} />
+              ) : (
+                <span aria-hidden="true" className="h-6 w-6 rounded-full bg-white/50" />
+              )}
             </button>
           );
         })}

@@ -63,6 +63,9 @@ type SubmitState = {
   loading: boolean;
   points: number | null;
   error: string | null;
+  dailyEarned?: number;
+  dailyCap?: number;
+  capReached?: boolean;
 };
 
 export default function WordMatchGame({ userId, difficulty = "EASY" }: { userId?: string; difficulty?: Difficulty }) {
@@ -104,7 +107,14 @@ export default function WordMatchGame({ userId, difficulty = "EASY" }: { userId?
       });
       const json = await res.json().catch(() => ({}));
       if (res.ok && json.ok) {
-        setSubmit({ loading: false, points: json.pointsEarned ?? 0, error: null });
+        setSubmit({
+          loading: false,
+          points: json.pointsEarned ?? 0,
+          error: null,
+          dailyEarned: json.dailyEarned,
+          dailyCap: json.dailyCap,
+          capReached: json.capReached,
+        });
       } else {
         setSubmit({ loading: false, points: null, error: json?.message ?? "다시 해주세요." });
       }
@@ -245,10 +255,24 @@ export function ResultScreen({
       </p>
       <p className="mt-2 text-lg text-zinc-600">걸린 시간 {durationSec}초</p>
 
-      <div className="mt-6 min-h-[48px] text-2xl font-bold" role="status">
-        {submit.loading && <span className="text-zinc-600">점수를 저장하는 중이에요…</span>}
-        {submit.points !== null && <span className="text-yellow-700">획득 {submit.points}포인트</span>}
-        {submit.error && <span className="text-red-700">{submit.error}</span>}
+      <div className="mt-6 min-h-[48px]" role="status">
+        {submit.loading && <span className="text-2xl font-bold text-zinc-600">점수를 저장하는 중이에요…</span>}
+        {!submit.loading && submit.points !== null && (
+          <div>
+            <div className="text-2xl font-bold text-amber-700">+{submit.points} 포인트</div>
+            {typeof submit.dailyEarned === "number" && submit.dailyCap ? (
+              <div className="mt-1 text-base text-zinc-600">
+                오늘 모은 점수 {submit.dailyEarned} / {submit.dailyCap}점
+              </div>
+            ) : null}
+            {submit.capReached && (
+              <div className="mt-1 text-base font-semibold text-green-700">
+                오늘 포인트를 다 모았어요! 내일 또 만나요 😊
+              </div>
+            )}
+          </div>
+        )}
+        {submit.error && <span className="text-2xl font-bold text-red-700">{submit.error}</span>}
       </div>
 
       <button

@@ -12,8 +12,21 @@ const GAME_TYPES: GameType[] = [
 ];
 const DIFFICULTIES: Difficulty[] = ["EASY", "MEDIUM", "HARD"];
 
-// 난이도별 포인트 배수 — 어려울수록 더 많은 포인트. 서버에서 권위 있게 계산한다.
-const POINT_MULTIPLIER: Record<Difficulty, number> = { EASY: 1, MEDIUM: 2, HARD: 3 };
+// 하루에 모을 수 있는 게임 포인트 상한 (KST 자정 기준 리셋).
+const DAILY_CAP = 1000;
+
+// 한 판 "만점" 시 난이도별 최대 포인트. 난이도별 한 판 길이와 곱해 계산하면
+// 쉼없이 플레이할 때 대략: 어려움 40분 · 보통 50분 · 쉬움 60분에 1000점에 도달.
+// 실제 점수 비율(맞힌 비율)만큼 비례 지급하므로 잘 풀수록 빨리 채워진다.
+const MAX_POINTS: Record<Difficulty, number> = { EASY: 17, MEDIUM: 30, HARD: 50 };
+
+// KST(UTC+9) 기준 "오늘 00:00" 의 UTC 시각.
+function startOfTodayKST(): Date {
+  const nowMs = Date.now();
+  const kst = new Date(nowMs + 9 * 3600 * 1000);
+  const startUtcMs = Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate()) - 9 * 3600 * 1000;
+  return new Date(startUtcMs);
+}
 
 function isGameType(v: unknown): v is GameType {
   return typeof v === "string" && (GAME_TYPES as string[]).includes(v);
@@ -44,8 +57,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, message: "다시 해주세요." }, { status: 400 });
   }
 
-  // 기본 포인트 = 점수의 절반, 난이도 배수 적용 (쉬움 ×1 · 보통 ×2 · 어려움 ×3).
-  const pts = Math.max(0, Math.floor((Number(score) / 2) * POINT_MULTIPLIER[difficulty]));
+  // 점수 비율(맞힌 비율)만큼 난이도별 최대 포인트를 비례 지급.
+  const total = Math.max(1, Number(totalItems));
+  const ratio = Math.min(1, Math.max(0, Number(score) / total));
+  const computed = Math.round(MAX_POINTS[difficulty] * ratio);
+
+  // 오늘 이미 모은 게임 포인트를 합산해 하루 상한(1000)까지만 지급.
+  const earnedAgg = await prisma.gamePlay.aggregate({
+    where: { userId, playedAt: { gte: startOfTodayKST() } },
+    _sum: { pointsEarned: true },
+  });
+  const earnedToday = earnedAgg._sum.pointsEarned ?? 0;
+  const remaining = Math.max(0, DAILY_CAP - earnedToday);
+  const pts = Math.min(computed, remaining);
 
   const gp = await prisma.gamePlay.create({
     data: {
@@ -74,5 +98,13 @@ export async function POST(req: Request) {
     await prisma.user.update({ where: { id: userId }, data: { points: { increment: pts } } });
   }
 
-  return NextResponse.json({ ok: true, gamePlay: gp, pointsEarned: pts });
+  const dailyEarned = earnedToday + pts;
+  return NextResponse.json({
+    ok: true,
+    gamePlay: gp,
+    pointsEarned: pts,
+    dailyEarned,
+    dailyCap: DAILY_CAP,
+    capReached: dailyEarned >= DAILY_CAP,
+  });
 }

@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 
 export default function PointsPage() {
   const [points, setPoints] = useState<number | null>(null);
+  const [todayPoints, setTodayPoints] = useState<number>(0);
+  const [dailyCap, setDailyCap] = useState<number>(1000);
   const [amount, setAmount] = useState(100);
   const [status, setStatus] = useState<string | null>(null);
 
@@ -12,13 +14,17 @@ export default function PointsPage() {
       try {
         const res = await fetch('/api/dashboard');
         const j = await res.json();
-        setPoints(j?.points ?? 0);
+        setPoints(j?.user?.points ?? 0);
+        setTodayPoints(j?.gamePointsToday ?? 0);
+        if (j?.dailyCap) setDailyCap(j.dailyCap);
       } catch (e) {
         setPoints(0);
       }
     }
     load();
   }, []);
+
+  const todayPct = Math.min(100, Math.round((todayPoints / dailyCap) * 100));
 
   async function requestPayout(e: React.FormEvent) {
     e.preventDefault();
@@ -53,6 +59,24 @@ export default function PointsPage() {
             <span className="ml-1 text-2xl font-bold">점</span>
           </div>
         </div>
+      </div>
+
+      {/* 오늘 게임으로 모은 포인트 (하루 상한) */}
+      <div className="mt-4 rounded-3xl border border-amber-100 bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-zinc-900">오늘 모은 포인트</h2>
+          <span className="text-lg font-bold text-amber-700">
+            {todayPoints} / {dailyCap}점
+          </span>
+        </div>
+        <div className="mt-3 h-4 w-full overflow-hidden rounded-full bg-amber-100">
+          <div className="h-full rounded-full bg-amber-400 transition-all" style={{ width: `${todayPct}%` }} />
+        </div>
+        <p className="mt-2 text-base text-zinc-600">
+          {todayPoints >= dailyCap
+            ? "오늘 모을 수 있는 포인트를 다 채웠어요! 내일 또 만나요 😊"
+            : "게임으로 하루 최대 1000점까지 모을 수 있어요. 어려운 난이도일수록 빨리 모여요!"}
+        </p>
       </div>
 
       <section className="mt-5 rounded-3xl border border-amber-100 bg-white p-6 shadow-sm">

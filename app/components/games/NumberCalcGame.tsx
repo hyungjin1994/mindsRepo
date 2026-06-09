@@ -74,6 +74,9 @@ type SubmitState = {
   loading: boolean;
   points: number | null;
   error: string | null;
+  dailyEarned?: number;
+  dailyCap?: number;
+  capReached?: boolean;
 };
 
 export default function NumberCalcGame({ userId, difficulty = "EASY" }: { userId?: string; difficulty?: Difficulty }) {
@@ -114,7 +117,14 @@ export default function NumberCalcGame({ userId, difficulty = "EASY" }: { userId
       });
       const json = await res.json().catch(() => ({}));
       if (res.ok && json.ok) {
-        setSubmit({ loading: false, points: json.pointsEarned ?? 0, error: null });
+        setSubmit({
+          loading: false,
+          points: json.pointsEarned ?? 0,
+          error: null,
+          dailyEarned: json.dailyEarned,
+          dailyCap: json.dailyCap,
+          capReached: json.capReached,
+        });
       } else {
         setSubmit({ loading: false, points: null, error: json?.message ?? "다시 해주세요." });
       }
