@@ -11,7 +11,7 @@ type MenuItem = {
 
 const ITEMS: MenuItem[] = [
   { href: "/medications", icon: "💊", label: "약 관리", desc: "복용하는 약과 시간을 관리해요" },
-  { href: "/reminders", icon: "⏰", label: "알림·일정", desc: "약·병원·운동 일정을 등록해요" },
+  { href: "/reminders", icon: "📅", label: "일정·달력", desc: "달력에서 일정을 보고 추가해요" },
   { href: "/workout", icon: "🏃", label: "운동 기록", desc: "오늘 한 운동을 남겨요" },
   { href: "/family/manage", icon: "👨‍👩‍👧", label: "가족 관리", desc: "가족을 초대하고 사진을 보내요" },
   { href: "/settings", icon: "⚙️", label: "설정", desc: "글자 크기·화면 보기·알림" },
