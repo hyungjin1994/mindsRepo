@@ -184,20 +184,29 @@ export default function MemoryMatchGame({ userId, difficulty = "EASY" }: { userI
               onClick={() => flip(i)}
               disabled={isUp || lock}
               aria-label={isUp ? `${card.emoji} 카드` : "뒤집힌 카드"}
-              className={
-                "flex aspect-square items-center justify-center rounded-2xl transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300 " +
-                (card.matched
-                  ? "bg-green-50 ring-2 ring-green-500"
-                  : isUp
-                    ? "bg-amber-50 ring-2 ring-amber-300"
-                    : "bg-amber-400 hover:bg-amber-300")
-              }
+              className="relative aspect-square rounded-2xl [perspective:800px] focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
             >
-              {isUp ? (
-                <EmojiArt emoji={card.emoji} />
-              ) : (
-                <span aria-hidden="true" className="h-6 w-6 rounded-full bg-white/50" />
-              )}
+              {/* 뒤집힐 때 Y축으로 회전하는 안쪽 래퍼 */}
+              <span
+                className={
+                  "absolute inset-0 transition-transform duration-300 [transform-style:preserve-3d] " +
+                  (isUp ? "[transform:rotateY(180deg)]" : "")
+                }
+              >
+                {/* 뒷면 (덮인 카드) */}
+                <span className="absolute inset-0 flex items-center justify-center rounded-2xl bg-amber-400 [backface-visibility:hidden]">
+                  <span aria-hidden="true" className="h-6 w-6 rounded-full bg-white/50" />
+                </span>
+                {/* 앞면 (그림) */}
+                <span
+                  className={
+                    "absolute inset-0 flex items-center justify-center rounded-2xl [backface-visibility:hidden] [transform:rotateY(180deg)] " +
+                    (card.matched ? "bg-green-50 ring-2 ring-green-500" : "bg-amber-50 ring-2 ring-amber-300")
+                  }
+                >
+                  <EmojiArt emoji={card.emoji} />
+                </span>
+              </span>
             </button>
           );
         })}

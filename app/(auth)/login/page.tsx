@@ -66,6 +66,16 @@ export default function LoginPage() {
           </p>
         )}
       </div>
+
+      <p className="mt-5 text-center text-base text-zinc-600">
+        가족이 보낸 연결 코드가 있으세요?{" "}
+        <a
+          href="/connect"
+          className="font-bold text-amber-700 underline focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
+        >
+          가족 연결하기 →
+        </a>
+      </p>
     </main>
   );
 }
