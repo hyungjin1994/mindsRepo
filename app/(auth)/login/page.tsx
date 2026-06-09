@@ -24,24 +24,48 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto max-w-md p-6">
-      <h1 className="text-3xl font-semibold">로그인</h1>
-      <p className="mt-2 text-base text-zinc-600">이메일로 매직링크를 보내 로그인하세요.</p>
-      <form onSubmit={sendMagicLink} className="mt-4 flex flex-col gap-3">
-        <input
-          type="email"
-          aria-label="이메일 주소"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="이메일 입력"
-          required
-          className="min-h-[56px] rounded border px-4 py-3 text-base focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        />
-        <button className="min-h-[56px] rounded bg-blue-600 px-4 py-3 text-base text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-          전송
-        </button>
-      </form>
-      {status && <p className="mt-3 text-base">{status}</p>}
+    <main className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-5 py-10">
+      <div className="rounded-3xl border border-amber-100 bg-white p-7 shadow-sm">
+        <div className="flex flex-col items-center text-center">
+          <span
+            aria-hidden="true"
+            className="flex h-16 w-16 items-center justify-center rounded-3xl bg-amber-400 text-3xl shadow-sm"
+          >
+            🧠
+          </span>
+          <h1 className="mt-4 text-3xl font-extrabold text-zinc-900">로그인</h1>
+          <p className="mt-2 text-lg text-zinc-600">
+            이메일 주소만 적으면 로그인 링크를 보내드려요.
+            <br />
+            받은 메일에서 링크를 누르면 끝이에요.
+          </p>
+        </div>
+
+        <form onSubmit={sendMagicLink} className="mt-6 flex flex-col gap-3">
+          <input
+            type="email"
+            aria-label="이메일 주소"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="이메일 입력 (예: mom@naver.com)"
+            required
+            className="min-h-[56px] rounded-2xl border-2 border-amber-200 px-4 py-3 text-lg focus:border-amber-400 focus:ring-4 focus:ring-amber-300 focus:outline-none"
+          />
+          <button className="min-h-[56px] rounded-2xl bg-amber-400 px-4 py-3 text-lg font-bold text-zinc-900 shadow-sm hover:bg-amber-300 focus:ring-4 focus:ring-amber-300 focus:outline-none">
+            로그인 링크 받기
+          </button>
+        </form>
+
+        {status && (
+          <p
+            role="status"
+            aria-live="polite"
+            className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-center text-base text-amber-800"
+          >
+            {status}
+          </p>
+        )}
+      </div>
     </main>
   );
 }

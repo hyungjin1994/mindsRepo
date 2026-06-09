@@ -36,23 +36,23 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-zinc-50 font-sans dark:bg-black">
-      <main className="mx-auto max-w-3xl p-6">
+    <div className="min-h-screen">
+      <main className="mx-auto max-w-3xl px-5 py-8">
         <DashboardHeader name={user.name} points={user.points} onOpenHelp={() => setHelpOpen(true)} />
 
-        <section className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
-          <div>
+        <section className="mt-7 grid grid-cols-1 gap-5 lg:grid-cols-[2fr_1fr]">
+          <div className="space-y-5">
             <QuickGameCard />
             <Reminders reminders={reminders} userId={user.id} />
           </div>
-          <aside className="space-y-4">
+          <aside className="space-y-5">
             <FamilyFeed items={feed} />
             <PushSubscribe userId={user.id} />
           </aside>
         </section>
 
-        <p className="mt-6 text-base text-zinc-500">
-          글자 크기와 고대비는 화면 위쪽 설정에서 바꿀 수 있어요.
+        <p className="mt-8 rounded-2xl bg-amber-50/70 px-4 py-3 text-center text-base text-amber-800">
+          💡 글자 크기와 고대비는 화면 맨 위 설정에서 바꿀 수 있어요.
         </p>
 
         <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />

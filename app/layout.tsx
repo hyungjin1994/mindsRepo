@@ -26,21 +26,30 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 
   return (
     <html lang="ko" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex min-h-screen flex-col">
-        <header className="border-b bg-white px-4 py-3">
+      <body className="flex min-h-screen min-h-full flex-col">
+        <header className="sticky top-0 z-20 border-b border-amber-100/80 bg-white/85 px-4 py-3 backdrop-blur">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
-            <a href="/" className="text-lg font-semibold" aria-label="minds 홈">
-              minds
+            <a href="/" className="flex items-center gap-2.5" aria-label="minds 홈">
+              <span
+                aria-hidden="true"
+                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-400 text-2xl shadow-sm"
+              >
+                🧠
+              </span>
+              <span className="flex flex-col leading-tight">
+                <span className="text-xl font-extrabold tracking-tight text-zinc-900">minds</span>
+                <span className="text-xs font-medium text-amber-700">매일 두뇌 건강</span>
+              </span>
             </a>
             <div className="flex flex-wrap items-center gap-3">
               <A11yControls />
               {user ? (
                 <div className="flex items-center gap-3">
-                  <div className="text-base">{user.name ?? user.email}</div>
+                  <div className="text-base font-medium text-zinc-700">{user.name ?? user.email}</div>
                   <form action="/api/auth/signout" method="post">
                     <button
                       aria-label="로그아웃"
-                      className="min-h-[56px] rounded border px-4 py-3 text-base hover:bg-zinc-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="min-h-[56px] rounded-2xl border-2 border-amber-200 bg-white px-5 py-3 text-base font-semibold text-zinc-800 hover:bg-amber-50 focus:ring-4 focus:ring-amber-300 focus:outline-none"
                     >
                       로그아웃
                     </button>
@@ -50,7 +59,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                 <a
                   href="/login"
                   aria-label="로그인"
-                  className="inline-flex min-h-[56px] items-center rounded border px-4 py-3 text-base hover:bg-zinc-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="inline-flex min-h-[56px] items-center rounded-2xl bg-amber-400 px-6 py-3 text-base font-bold text-zinc-900 shadow-sm hover:bg-amber-300 focus:ring-4 focus:ring-amber-300 focus:outline-none"
                 >
                   로그인
                 </a>

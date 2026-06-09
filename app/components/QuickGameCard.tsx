@@ -14,9 +14,9 @@ export default function QuickGameCard({ userId }: { userId?: string }) {
 
   if (playing) {
     return (
-      <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+      <section className="rounded-3xl border border-amber-100 bg-white p-5 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-zinc-900">단어 맞추기</h2>
+          <h2 className="text-xl font-bold text-zinc-900">🧩 단어 맞추기</h2>
           <button
             type="button"
             onClick={() => setPlaying(false)}
@@ -32,9 +32,12 @@ export default function QuickGameCard({ userId }: { userId?: string }) {
   }
 
   return (
-    <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-      <h2 className="text-2xl font-bold text-zinc-900">오늘의 게임</h2>
-      <p className="mt-2 text-base text-zinc-600">
+    <section className="rounded-3xl border border-amber-100 bg-white p-6 shadow-sm">
+      <div className="flex items-center gap-2">
+        <span aria-hidden="true" className="text-2xl">🧩</span>
+        <h2 className="text-2xl font-bold text-zinc-900">오늘의 게임</h2>
+      </div>
+      <p className="mt-2 text-lg text-zinc-600">
         추천: 단어 맞추기 — 부담 없이 잠깐만 풀어보세요.
       </p>
       <div className="mt-5 flex flex-col gap-3 sm:flex-row">
