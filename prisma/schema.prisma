@@ -9,6 +9,9 @@ generator client {
 }
 
 datasource db {
+  // Prisma 7: 연결 URL 은 schema 가 아니라 prisma.config.ts 에서 설정한다.
+  // 런타임은 lib/prisma.ts 의 드라이버 어댑터(DATABASE_URL)로 연결되고,
+  // 마이그레이션(db push)은 prisma.config.ts 의 datasource.url(DIRECT_URL)로 연결된다.
   provider = "postgresql"
 }
 
