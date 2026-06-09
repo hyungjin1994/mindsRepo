@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import { ResultScreen } from "./WordMatchGame";
+import { Difficulty, QUESTION_COUNT } from "./difficulty";
 
 // 색깔 맞추기 (COLOR_NAME) — 스트룹 과제.
 // 색깔 이름이 적힌 글자를 보여주는데, 글자의 "색"과 적힌 "이름"이 다를 수 있습니다.
@@ -28,8 +29,6 @@ type Question = {
   inkName: string; // 정답: 글자가 칠해진 색 이름
   options: string[]; // 보기(색 이름) 4개
 };
-
-const TOTAL = 10;
 
 function shuffle<T>(arr: T[]): T[] {
   const copy = [...arr];
@@ -58,8 +57,8 @@ function makeQuestion(): Question {
   };
 }
 
-function buildQuestions(): Question[] {
-  return Array.from({ length: TOTAL }, () => makeQuestion());
+function buildQuestions(total: number): Question[] {
+  return Array.from({ length: total }, () => makeQuestion());
 }
 
 type SubmitState = {
@@ -68,8 +67,9 @@ type SubmitState = {
   error: string | null;
 };
 
-export default function ColorNameGame({ userId }: { userId?: string }) {
-  const [questions, setQuestions] = useState<Question[]>(() => buildQuestions());
+export default function ColorNameGame({ userId, difficulty = "EASY" }: { userId?: string; difficulty?: Difficulty }) {
+  const TOTAL = QUESTION_COUNT[difficulty];
+  const [questions, setQuestions] = useState<Question[]>(() => buildQuestions(TOTAL));
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
@@ -94,7 +94,7 @@ export default function ColorNameGame({ userId }: { userId?: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           gameType: "COLOR_NAME",
-          difficulty: "EASY",
+          difficulty,
           score: finalScore,
           totalItems: TOTAL,
           durationSec: Math.max(1, Math.round((end - startedAt) / 1000)),
@@ -133,7 +133,7 @@ export default function ColorNameGame({ userId }: { userId?: string }) {
   }
 
   function restart() {
-    setQuestions(buildQuestions());
+    setQuestions(buildQuestions(TOTAL));
     setIndex(0);
     setScore(0);
     setPicked(null);

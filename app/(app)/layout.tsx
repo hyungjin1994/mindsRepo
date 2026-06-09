@@ -1,5 +1,4 @@
 import { getOrCreateUser } from "../../lib/auth";
-import A11yControls from "../components/A11yControls";
 import BottomNav from "../components/BottomNav";
 
 // (app) 그룹 = 어머니 전용 앱 영역. 상단 바 + 본문 + 하단 탭으로 "앱처럼" 감싼다.
@@ -25,7 +24,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <span className="text-lg font-extrabold tracking-tight text-zinc-900">minds</span>
           </a>
           <div className="flex items-center gap-2">
-            <A11yControls />
+            <a
+              href="/settings"
+              aria-label="설정"
+              className="flex min-h-[44px] items-center gap-1 rounded-xl border-2 border-amber-200 bg-white px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-amber-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
+            >
+              <span aria-hidden="true">⚙️</span> 설정
+            </a>
             {user && (
               <form action="/api/auth/signout" method="post">
                 <button

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import { Difficulty, QUESTION_COUNT } from "./difficulty";
 
 // 단어 맞추기 (WORD_MATCH)
 // 제시된 단어와 어울리는 짝(비슷한 말 또는 같은 종류)을 4개 보기 중에서 고릅니다.
@@ -25,6 +26,12 @@ const SEEDS: QuestionSeed[] = [
   { word: "피아노", answer: "악기", others: ["가방", "우산", "냄비"] },
   { word: "바다", answer: "자연", others: ["연필", "텔레비전", "단추"] },
   { word: "어렵다", answer: "힘들다", others: ["쉽다", "맑다", "시원하다"] },
+  { word: "고양이", answer: "동물", others: ["책상", "전화", "양말"] },
+  { word: "비행기", answer: "교통수단", others: ["사탕", "거울", "장갑"] },
+  { word: "포도", answer: "과일", others: ["벽돌", "리본", "양배추"] },
+  { word: "기타", answer: "악기", others: ["수건", "접시", "지갑"] },
+  { word: "여름", answer: "계절", others: ["월요일", "동전", "초록색"] },
+  { word: "선생님", answer: "직업", others: ["바나나", "마을", "북"] },
 ];
 
 type Question = {
@@ -42,11 +49,9 @@ function shuffle<T>(arr: T[]): T[] {
   return copy;
 }
 
-const TOTAL = 10;
-
-function buildQuestions(): Question[] {
+function buildQuestions(total: number): Question[] {
   return shuffle(SEEDS)
-    .slice(0, TOTAL)
+    .slice(0, total)
     .map((seed) => ({
       prompt: seed.word,
       answer: seed.answer,
@@ -60,8 +65,9 @@ type SubmitState = {
   error: string | null;
 };
 
-export default function WordMatchGame({ userId }: { userId?: string }) {
-  const [questions, setQuestions] = useState<Question[]>(() => buildQuestions());
+export default function WordMatchGame({ userId, difficulty = "EASY" }: { userId?: string; difficulty?: Difficulty }) {
+  const TOTAL = QUESTION_COUNT[difficulty];
+  const [questions, setQuestions] = useState<Question[]>(() => buildQuestions(TOTAL));
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
@@ -88,7 +94,7 @@ export default function WordMatchGame({ userId }: { userId?: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           gameType: "WORD_MATCH",
-          difficulty: "EASY",
+          difficulty,
           score: finalScore,
           totalItems: TOTAL,
           durationSec: Math.max(1, Math.round((end - startedAt) / 1000)),
@@ -128,7 +134,7 @@ export default function WordMatchGame({ userId }: { userId?: string }) {
   }
 
   function restart() {
-    setQuestions(buildQuestions());
+    setQuestions(buildQuestions(TOTAL));
     setIndex(0);
     setScore(0);
     setPicked(null);

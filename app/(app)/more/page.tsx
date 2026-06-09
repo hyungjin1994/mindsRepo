@@ -14,6 +14,7 @@ const ITEMS: MenuItem[] = [
   { href: "/reminders", icon: "⏰", label: "알림·일정", desc: "약·병원·운동 일정을 등록해요" },
   { href: "/workout", icon: "🏃", label: "운동 기록", desc: "오늘 한 운동을 남겨요" },
   { href: "/family/manage", icon: "👨‍👩‍👧", label: "가족 관리", desc: "가족을 초대하고 사진을 보내요" },
+  { href: "/settings", icon: "⚙️", label: "설정", desc: "글자 크기·화면 보기·알림" },
 ];
 
 export default function MorePage() {

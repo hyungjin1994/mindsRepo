@@ -2,10 +2,13 @@
 
 import React, { useMemo, useState } from "react";
 import { ResultScreen } from "./WordMatchGame";
+import { Difficulty, QUESTION_COUNT } from "./difficulty";
 
 // 숫자 계산 (NUMBER_CALC)
-// 0~50 범위의 간단한 더하기/빼기 문제를 풉니다. 4지선다.
-// 문제는 모두 코드 안에서 무작위로 만들어집니다 (외부 데이터 없음).
+// 간단한 더하기/빼기 문제를 풉니다. 4지선다.
+// 난이도가 올라가면 수의 범위가 커집니다. 문제는 모두 코드 안에서 만들어집니다.
+
+const MAX_BY_DIFFICULTY: Record<Difficulty, number> = { EASY: 20, MEDIUM: 50, HARD: 99 };
 
 type Question = {
   a: number;
@@ -14,8 +17,6 @@ type Question = {
   answer: number;
   options: number[];
 };
-
-const TOTAL = 10;
 
 function shuffle<T>(arr: T[]): T[] {
   const copy = [...arr];
@@ -30,27 +31,28 @@ function randInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function makeQuestion(): Question {
+function makeQuestion(max: number): Question {
   const op: "+" | "-" = Math.random() < 0.5 ? "+" : "-";
   let a: number;
   let b: number;
   let answer: number;
   if (op === "+") {
-    a = randInt(0, 30);
-    b = randInt(0, 50 - a); // 합이 50을 넘지 않도록.
+    a = randInt(0, Math.floor(max * 0.6));
+    b = randInt(0, max - a); // 합이 최대값을 넘지 않도록.
     answer = a + b;
   } else {
-    a = randInt(10, 50);
+    a = randInt(Math.floor(max * 0.3), max);
     b = randInt(0, a); // 결과가 음수가 되지 않도록.
     answer = a - b;
   }
 
   // 정답 주변의 그럴듯한 오답 3개를 만든다 (중복/음수 제외).
+  const spread = max > 50 ? 9 : 5;
   const wrongs = new Set<number>();
   while (wrongs.size < 3) {
-    const delta = randInt(-5, 5);
+    const delta = randInt(-spread, spread);
     const candidate = answer + delta;
-    if (candidate >= 0 && candidate <= 50 && candidate !== answer) {
+    if (candidate >= 0 && candidate <= max && candidate !== answer) {
       wrongs.add(candidate);
     }
   }
@@ -64,8 +66,8 @@ function makeQuestion(): Question {
   };
 }
 
-function buildQuestions(): Question[] {
-  return Array.from({ length: TOTAL }, () => makeQuestion());
+function buildQuestions(total: number, max: number): Question[] {
+  return Array.from({ length: total }, () => makeQuestion(max));
 }
 
 type SubmitState = {
@@ -74,8 +76,10 @@ type SubmitState = {
   error: string | null;
 };
 
-export default function NumberCalcGame({ userId }: { userId?: string }) {
-  const [questions, setQuestions] = useState<Question[]>(() => buildQuestions());
+export default function NumberCalcGame({ userId, difficulty = "EASY" }: { userId?: string; difficulty?: Difficulty }) {
+  const TOTAL = QUESTION_COUNT[difficulty];
+  const MAX = MAX_BY_DIFFICULTY[difficulty];
+  const [questions, setQuestions] = useState<Question[]>(() => buildQuestions(TOTAL, MAX));
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
@@ -100,7 +104,7 @@ export default function NumberCalcGame({ userId }: { userId?: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           gameType: "NUMBER_CALC",
-          difficulty: "EASY",
+          difficulty,
           score: finalScore,
           totalItems: TOTAL,
           durationSec: Math.max(1, Math.round((end - startedAt) / 1000)),
@@ -139,7 +143,7 @@ export default function NumberCalcGame({ userId }: { userId?: string }) {
   }
 
   function restart() {
-    setQuestions(buildQuestions());
+    setQuestions(buildQuestions(TOTAL, MAX));
     setIndex(0);
     setScore(0);
     setPicked(null);

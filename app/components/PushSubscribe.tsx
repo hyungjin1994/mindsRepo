@@ -40,19 +40,21 @@ export default function PushSubscribe({ userId }: { userId?: string }) {
   }
 
   return (
-    <div className="mt-4 rounded-lg border bg-white p-4">
-      <h4 className="text-lg font-medium">푸시 알림</h4>
-      <p className="text-base text-zinc-600">알림을 허용하면 약·일정 알림을 받을 수 있어요.</p>
-      <div className="mt-3">
-        <button
-          aria-label="푸시 알림 구독"
-          onClick={subscribe}
-          className="min-h-[56px] rounded bg-blue-600 px-4 py-3 text-base text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        >
-          푸시 구독
-        </button>
-        {status && <div className="mt-2 text-base">{status}</div>}
-      </div>
+    <div className="rounded-3xl border border-amber-100 bg-white p-6 shadow-sm">
+      <h2 className="text-2xl font-bold text-zinc-900">🔔 알림 받기</h2>
+      <p className="mt-1.5 text-base text-zinc-600">허용하면 약·일정 알림을 휴대폰으로 받을 수 있어요.</p>
+      <button
+        aria-label="푸시 알림 구독"
+        onClick={subscribe}
+        className="mt-4 min-h-[56px] w-full rounded-2xl bg-amber-400 px-4 py-3 text-lg font-bold text-zinc-900 shadow-sm hover:bg-amber-300 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
+      >
+        알림 켜기
+      </button>
+      {status && (
+        <div role="status" aria-live="polite" className="mt-3 rounded-2xl bg-amber-50 px-4 py-3 text-center text-base text-amber-800">
+          {status}
+        </div>
+      )}
     </div>
   );
 }

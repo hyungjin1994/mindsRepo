@@ -12,6 +12,9 @@ const GAME_TYPES: GameType[] = [
 ];
 const DIFFICULTIES: Difficulty[] = ["EASY", "MEDIUM", "HARD"];
 
+// 난이도별 포인트 배수 — 어려울수록 더 많은 포인트. 서버에서 권위 있게 계산한다.
+const POINT_MULTIPLIER: Record<Difficulty, number> = { EASY: 1, MEDIUM: 2, HARD: 3 };
+
 function isGameType(v: unknown): v is GameType {
   return typeof v === "string" && (GAME_TYPES as string[]).includes(v);
 }
@@ -41,6 +44,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, message: "다시 해주세요." }, { status: 400 });
   }
 
+  // 기본 포인트 = 점수의 절반, 난이도 배수 적용 (쉬움 ×1 · 보통 ×2 · 어려움 ×3).
+  const pts = Math.max(0, Math.floor((Number(score) / 2) * POINT_MULTIPLIER[difficulty]));
+
   const gp = await prisma.gamePlay.create({
     data: {
       userId,
@@ -49,12 +55,11 @@ export async function POST(req: Request) {
       score: Number(score),
       totalItems: Number(totalItems),
       durationSec: Number(durationSec),
-      pointsEarned: Math.max(0, Math.floor(Number(score) / 2)),
+      pointsEarned: pts,
     },
   });
 
   // create point txn
-  const pts = Math.max(0, Math.floor(Number(score) / 2));
   if (pts > 0) {
     await prisma.pointTransaction.create({
       data: {

@@ -23,7 +23,16 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ko" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="flex min-h-screen min-h-full flex-col">{children}</body>
+      <body className="flex min-h-screen min-h-full flex-col">
+        {/* 저장된 글자 크기·고대비 설정을 페인트 전에 복원 (설정은 /settings 에서 변경) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var p=Number(localStorage.getItem('minds:fontPx'));if(p>=14&&p<=40){document.documentElement.style.setProperty('--app-font-size',p+'px');}if(localStorage.getItem('minds:hc')==='1'){document.documentElement.classList.add('hc');}}catch(e){}",
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }
