@@ -1,14 +1,18 @@
+import { redirect } from "next/navigation";
 import { getOrCreateUser } from "../../lib/auth";
 import BottomNav from "../components/BottomNav";
 
 // (app) 그룹 = 어머니 전용 앱 영역. 상단 바 + 본문 + 하단 탭으로 "앱처럼" 감싼다.
 //
-// 가드: 데이터는 각 API 라우트가 세션으로 보호하므로(미로그인 시 401/빈값), 페이지 셸은
-// 로그인 없이도 둘러볼 수 있게 둔다. 이메일 로그인이 실제로 동작하게 설정한 뒤
-// 아래 redirect 를 다시 켜면 미로그인 사용자를 /login 으로 보낼 수 있다.
+// 가드: 로그인하지 않았으면 로그인 화면으로 보낸다. 세션은 쿠키에 저장되고 proxy.ts 가
+// 매 요청마다 갱신하므로, 한 번 로그인하면 다음 방문엔 자동으로 입장한다.
+// (자녀용 /connect, /family/* 는 (app) 밖이라 가드의 영향을 받지 않는다.)
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const mapped = await getOrCreateUser().catch(() => null);
-  const user = mapped?.prismaUser;
+  if (!mapped) {
+    redirect("/login");
+  }
+  const user = mapped.prismaUser;
 
   return (
     <div className="flex min-h-screen flex-col">
