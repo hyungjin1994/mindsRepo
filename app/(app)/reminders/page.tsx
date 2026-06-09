@@ -101,13 +101,13 @@ export default function RemindersPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl p-6">
-      <h1 className="text-3xl font-semibold">리마인더</h1>
-      <p className="mt-2 text-base text-zinc-600">약·일정 알림을 확인하고 관리합니다.</p>
+    <div className="mx-auto max-w-2xl px-5 py-7">
+      <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900">⏰ 알림·일정</h1>
+      <p className="mt-1.5 text-lg text-zinc-600">약·병원·운동 일정을 등록하고 확인해요.</p>
 
-      <section className="mt-8">
-        <h2 className="text-2xl font-semibold">새 일정 추가</h2>
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4 rounded border bg-white p-4">
+      <section className="mt-6">
+        <h2 className="text-2xl font-bold text-zinc-900">새 일정 추가</h2>
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4 rounded-3xl border border-amber-100 bg-white p-6 shadow-sm">
           <div>
             <label htmlFor="reminder-title" className="block text-lg font-medium">
               제목
@@ -181,7 +181,7 @@ export default function RemindersPage() {
             type="submit"
             disabled={submitting}
             aria-label="새 일정 추가"
-            className="min-h-[56px] w-full rounded bg-amber-500 px-4 py-3 text-lg font-semibold text-white focus:ring-2 focus:ring-amber-700 focus:outline-none disabled:opacity-60"
+            className="min-h-[56px] w-full rounded-2xl bg-amber-400 px-4 py-3 text-lg font-bold text-zinc-900 shadow-sm hover:bg-amber-300 focus:ring-4 focus:ring-amber-300 focus:outline-none disabled:opacity-60"
           >
             {submitting ? "저장 중…" : "추가하기"}
           </button>
@@ -189,7 +189,7 @@ export default function RemindersPage() {
       </section>
 
       <section className="mt-8 space-y-3">
-        <h2 className="text-2xl font-semibold">등록된 일정</h2>
+        <h2 className="text-2xl font-bold text-zinc-900">등록된 일정</h2>
         {loadError && (
           <p role="alert" className="text-base text-red-600">
             {loadError}
@@ -199,9 +199,13 @@ export default function RemindersPage() {
           <div className="text-base text-zinc-500">등록된 리마인더가 없습니다.</div>
         )}
         {items.map((r) => (
-          <div key={r.id} className="rounded border bg-white p-4">
-            <div className="text-lg font-medium">{r.title}</div>
-            <div className="mt-1 text-base text-amber-700">{kindLabel(r.kind)}</div>
+          <div key={r.id} className="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-800">
+                {kindLabel(r.kind)}
+              </span>
+            </div>
+            <div className="mt-2 text-xl font-bold text-zinc-900">{r.title}</div>
             <div className="mt-1 text-base text-zinc-600">{r.note ?? "(메모 없음)"}</div>
             <div className="mt-2 text-base text-zinc-500">
               {new Date(r.scheduledAt).toLocaleString("ko-KR")}
@@ -209,6 +213,6 @@ export default function RemindersPage() {
           </div>
         ))}
       </section>
-    </main>
+    </div>
   );
 }

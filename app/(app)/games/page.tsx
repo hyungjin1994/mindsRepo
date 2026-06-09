@@ -24,10 +24,16 @@ export default function GamesPage() {
 
   const current = GAMES.find((g) => g.key === selected) ?? null;
 
+  const GAME_ICONS: Record<GameKey, string> = {
+    WORD_MATCH: "🧩",
+    NUMBER_CALC: "🔢",
+    COLOR_NAME: "🎨",
+  };
+
   return (
-    <main className="mx-auto max-w-2xl p-6">
-      <h1 className="text-3xl font-bold text-zinc-900">두뇌 게임</h1>
-      <p className="mt-2 text-lg text-zinc-600">게임을 풀고 포인트를 모아보세요.</p>
+    <div className="mx-auto max-w-2xl px-5 py-7">
+      <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900">🎮 두뇌 게임</h1>
+      <p className="mt-1.5 text-lg text-zinc-600">게임을 풀고 포인트를 모아보세요.</p>
 
       {current === null ? (
         <div className="mt-6 grid gap-4">
@@ -37,10 +43,21 @@ export default function GamesPage() {
               type="button"
               onClick={() => setSelected(g.key)}
               aria-label={`${g.name} 시작하기`}
-              className="min-h-[96px] w-full rounded-2xl border-2 border-zinc-200 bg-white px-6 py-4 text-left shadow-sm hover:border-yellow-400 hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              className="flex min-h-[96px] w-full items-center gap-4 rounded-3xl border border-amber-100 bg-white px-5 py-4 text-left shadow-sm hover:bg-amber-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
             >
-              <span className="block text-2xl font-bold text-zinc-900">{g.name}</span>
-              <span className="mt-1 block text-lg text-zinc-600">{g.desc}</span>
+              <span
+                aria-hidden="true"
+                className="flex h-14 w-14 flex-none items-center justify-center rounded-2xl bg-amber-100 text-3xl"
+              >
+                {GAME_ICONS[g.key]}
+              </span>
+              <span className="min-w-0">
+                <span className="block text-2xl font-bold text-zinc-900">{g.name}</span>
+                <span className="mt-0.5 block text-lg text-zinc-600">{g.desc}</span>
+              </span>
+              <span aria-hidden="true" className="ml-auto text-2xl text-amber-400">
+                ›
+              </span>
             </button>
           ))}
         </div>
@@ -50,7 +67,7 @@ export default function GamesPage() {
             type="button"
             onClick={() => setSelected(null)}
             aria-label="게임 목록으로 돌아가기"
-            className="mb-4 inline-flex min-h-[56px] items-center rounded-xl border-2 border-zinc-300 bg-white px-5 py-3 text-lg font-semibold text-zinc-800 hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            className="mb-4 inline-flex min-h-[56px] items-center rounded-2xl border-2 border-amber-200 bg-white px-5 py-3 text-lg font-semibold text-zinc-800 hover:bg-amber-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
           >
             ← 다른 게임 고르기
           </button>
@@ -62,6 +79,6 @@ export default function GamesPage() {
           {selected === "COLOR_NAME" && <ColorNameGame />}
         </div>
       )}
-    </main>
+    </div>
   );
 }

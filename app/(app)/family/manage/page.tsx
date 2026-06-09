@@ -61,14 +61,14 @@ export default function FamilyManagePage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl p-6">
-      <h1 className="text-3xl font-semibold">가족 관리</h1>
-      <p className="mt-2 text-base text-zinc-600">
-        매직링크를 통해 가족을 초대하고 권한을 관리합니다.
+    <div className="mx-auto max-w-2xl px-5 py-7">
+      <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900">👨‍👩‍👧 가족 관리</h1>
+      <p className="mt-1.5 text-lg text-zinc-600">
+        가족을 초대하고 사진·메시지를 주고받아요.
       </p>
 
       <section className="mt-6">
-        <h2 className="text-xl font-medium">등록된 가족</h2>
+        <h2 className="text-2xl font-bold text-zinc-900">등록된 가족</h2>
         {loading ? (
           <div className="mt-3 text-base">불러오는 중이에요…</div>
         ) : members.length === 0 ? (
@@ -78,7 +78,7 @@ export default function FamilyManagePage() {
             {members.map((m) => {
               const shown = !!shownTokens[m.id];
               return (
-                <li key={m.id} className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
+                <li key={m.id} className="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <div className="text-lg font-medium text-zinc-900">{m.name}</div>
@@ -125,12 +125,12 @@ export default function FamilyManagePage() {
         ) : (
           <div
             role="status"
-            className="rounded-lg border border-zinc-200 bg-white p-4 text-base text-zinc-700"
+            className="rounded-2xl border border-amber-100 bg-white p-5 text-base text-zinc-700 shadow-sm"
           >
             로그인이 필요합니다.
           </div>
         )}
       </section>
-    </main>
+    </div>
   );
 }

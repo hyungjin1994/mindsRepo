@@ -55,11 +55,11 @@ export default function FamilyFeedPage() {
   }, []);
 
   return (
-    <main className="mx-auto max-w-3xl p-6">
-      <h1 className="text-3xl font-semibold">가족 피드</h1>
-      <p className="mt-3 text-lg text-zinc-700">가족이 보낸 메시지와 사진을 확인하세요.</p>
+    <div className="mx-auto max-w-2xl px-5 py-7">
+      <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900">💌 가족 소식</h1>
+      <p className="mt-1.5 text-lg text-zinc-600">가족이 보낸 메시지와 사진을 확인하세요.</p>
 
-      <section className="mt-8 space-y-6">
+      <section className="mt-6 space-y-4">
         {loading && <div className="text-lg text-zinc-600">불러오는 중이에요.</div>}
 
         {!loading && error && (
@@ -72,7 +72,7 @@ export default function FamilyFeedPage() {
         )}
 
         {!loading && !error && posts.length === 0 && (
-          <div className="rounded-2xl border bg-white p-6 text-lg text-zinc-600">
+          <div className="rounded-3xl border border-amber-100 bg-white p-8 text-center text-lg text-zinc-600 shadow-sm">
             아직 받은 메시지가 없어요.
           </div>
         )}
@@ -85,7 +85,7 @@ export default function FamilyFeedPage() {
             return (
               <article
                 key={post.id}
-                className="rounded-2xl border bg-white p-6 shadow-sm"
+                className="rounded-3xl border border-amber-100 bg-white p-6 shadow-sm"
               >
                 <div className="text-base font-semibold text-zinc-800">
                   {senderName}
@@ -112,6 +112,6 @@ export default function FamilyFeedPage() {
             );
           })}
       </section>
-    </main>
+    </div>
   );
 }
