@@ -7,6 +7,7 @@ import { createClient } from "../../../lib/supabase/client";
 // 자녀가 어머니 계정을 만들고(회원가입) 어머니 폰에 한 번 로그인해두면 계속 유지됩니다.
 export default function LoginPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<string | null>(null);
@@ -16,6 +17,10 @@ export default function LoginPage() {
     e.preventDefault();
     if (!email.trim() || !password) {
       setStatus("이메일과 비밀번호를 입력해주세요.");
+      return;
+    }
+    if (mode === "signup" && !name.trim()) {
+      setStatus("이름(호칭)을 적어주세요.");
       return;
     }
     if (mode === "signup" && password.length < 6) {
@@ -35,7 +40,11 @@ export default function LoginPage() {
           return;
         }
       } else {
-        const { data, error } = await supabase.auth.signUp({ email: email.trim(), password });
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: { data: { full_name: name.trim() } },
+        });
         if (error) {
           setStatus(error.message.includes("already")
             ? "이미 가입된 이메일이에요. 로그인해 주세요."
@@ -77,6 +86,16 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={submit} className="mt-6 flex flex-col gap-3">
+          {mode === "signup" && (
+            <input
+              type="text"
+              aria-label="이름 또는 호칭"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="이름 또는 호칭 (예: 엄마, 김영희)"
+              className="min-h-[56px] rounded-2xl border-2 border-amber-200 px-4 py-3 text-lg focus:border-amber-400 focus:ring-4 focus:ring-amber-300 focus:outline-none"
+            />
+          )}
           <input
             type="email"
             autoComplete="email"

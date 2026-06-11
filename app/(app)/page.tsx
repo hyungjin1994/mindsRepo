@@ -19,7 +19,7 @@ type LastGame = { score: number; totalItems: number; gameType: string } | null;
 type Photo = { id: string; imageUrl?: string | null; sender?: string };
 
 export default function Home() {
-  const [name, setName] = useState("어머니");
+  const [name, setName] = useState("");
   const [points, setPoints] = useState<number>(124);
   const [lastGame, setLastGame] = useState<LastGame>({ score: 8, totalItems: 10, gameType: "WORD_MATCH" });
   // 데모용 placeholder 3칸 — 실제 사진이 오면 교체됨
@@ -36,7 +36,7 @@ export default function Home() {
         if (!res.ok) return;
         const j = await res.json();
         if (j.user) {
-          setName(j.user.name ?? "어머니");
+          setName(j.user.name ?? "");
           setPoints(j.user.points ?? 0);
         }
         if ("lastGame" in j) setLastGame(j.lastGame);
@@ -55,7 +55,7 @@ export default function Home() {
   return (
     <div className="mx-auto max-w-2xl px-5 py-7">
       <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900">
-        안녕하세요, {name}님 <span className="inline-block">👋</span>
+        안녕하세요{name ? `, ${name}님` : ""} <span className="inline-block">👋</span>
       </h1>
       <p className="mt-1.5 text-lg text-zinc-600">오늘도 만나서 반가워요.</p>
 

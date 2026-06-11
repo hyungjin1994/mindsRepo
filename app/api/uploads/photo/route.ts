@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/prisma";
 import { getOrCreateUser } from "../../../../lib/auth";
-import { createClient as createServerSupabase } from "../../../../lib/supabase/server";
+import { createAdminClient } from "../../../../lib/supabase/admin";
 
 // 사진 업로드 → Supabase Storage 저장 + Photo 레코드 생성 + 포인트 5점 적립.
 //
@@ -115,7 +115,7 @@ export async function POST(req: Request) {
   let url: string;
   let thumbUrl: string | null = null;
   try {
-    const supabase = await createServerSupabase();
+    const supabase = createAdminClient();
 
     const upload = await supabase.storage
       .from("photos")
@@ -192,5 +192,25 @@ export async function POST(req: Request) {
       { ok: false, message: "사진 저장에 실패했어요. 다시 해주세요." },
       { status: 500 },
     );
+  }
+}
+
+// 어머니 본인이 올린 사진 목록 (가족 탭의 "내가 올린 사진"용).
+export async function GET() {
+  const mapped = await getOrCreateUser();
+  if (!mapped) {
+    return NextResponse.json({ ok: false, message: "로그인이 필요해요." }, { status: 401 });
+  }
+  try {
+    const photos = await prisma.photo.findMany({
+      where: { userId: mapped.prismaUser.id },
+      orderBy: { createdAt: "desc" },
+      take: 12,
+      select: { id: true, url: true, thumbUrl: true, caption: true, kind: true, takenAt: true },
+    });
+    return NextResponse.json({ ok: true, photos });
+  } catch (e) {
+    console.error("[uploads/photo] GET failed:", (e as Error)?.message);
+    return NextResponse.json({ ok: false, message: "불러오지 못했어요. 다시 해주세요." }, { status: 500 });
   }
 }

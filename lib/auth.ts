@@ -37,7 +37,9 @@ export async function getOrCreateUser() {
       where: { id: user.id as string },
       update: {
         email: user.email ?? undefined,
-        name: user.user_metadata?.full_name ?? user.email?.split("@")[0],
+        // 회원가입 때 받은 이름(metadata.full_name)이 있으면 그것으로 동기화.
+        // 없으면 기존 이름을 덮어쓰지 않는다 (설정에서 바꾼 이름이 유지되도록).
+        name: (user.user_metadata?.full_name as string) ?? undefined,
       },
       create: {
         id: user.id as string,

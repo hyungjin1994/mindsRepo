@@ -44,7 +44,7 @@ function makeThumb(file: File, maxDim = 320): Promise<string | null> {
   });
 }
 
-export default function PhotoUpload({ userId }: { userId?: string }) {
+export default function PhotoUpload({ userId, onUploaded }: { userId?: string; onUploaded?: () => void }) {
   const [busy, setBusy] = useState(false);
   const [kind, setKind] = useState<PhotoKind>("DAILY");
   const [caption, setCaption] = useState("");
@@ -54,11 +54,6 @@ export default function PhotoUpload({ userId }: { userId?: string }) {
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!userId) {
-      setOk(false);
-      setMessage("로그인이 필요해요.");
-      return;
-    }
 
     setBusy(true);
     setMessage(null);
@@ -72,9 +67,7 @@ export default function PhotoUpload({ userId }: { userId?: string }) {
     };
     reader.onload = async () => {
       try {
-        // data-URL 전체를 보내면 서버가 형식을 추론하고 prefix 를 떼어냅니다.
         const base64 = reader.result as string;
-        // 작은 썸네일을 미리 만들어 함께 전송 (피드에서 빠르게 보여주기 위함).
         const thumbBase64 = await makeThumb(file);
         const res = await fetch("/api/uploads/photo", {
           method: "POST",
@@ -91,18 +84,18 @@ export default function PhotoUpload({ userId }: { userId?: string }) {
         const json = await res.json().catch(() => ({}));
         if (res.ok && json.ok) {
           setOk(true);
-          setMessage("사진을 보냈어요. 가족이 곧 볼 수 있어요.");
+          setMessage("사진을 올렸어요! 가족이 볼 수 있어요. (+5점)");
           setCaption("");
+          onUploaded?.();
         } else {
           setOk(false);
-          setMessage(json?.message ?? "사진을 보내지 못했어요. 다시 해주세요.");
+          setMessage(json?.message ?? "사진을 올리지 못했어요. 다시 해주세요.");
         }
       } catch {
         setOk(false);
-        setMessage("사진을 보내지 못했어요. 다시 해주세요.");
+        setMessage("사진을 올리지 못했어요. 다시 해주세요.");
       } finally {
         setBusy(false);
-        // 같은 파일을 다시 고를 수 있도록 입력값 초기화.
         e.target.value = "";
       }
     };
@@ -110,79 +103,70 @@ export default function PhotoUpload({ userId }: { userId?: string }) {
   }
 
   return (
-    <div className="mt-4 rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
-      <h4 className="text-lg font-semibold">사진 올리기</h4>
-      <p className="text-base text-zinc-600">식사나 일상 사진을 올리면 가족이 확인할 수 있어요.</p>
+    <div className="rounded-[1.75rem] bg-white p-6 shadow-soft">
+      <h2 className="text-2xl font-bold text-zinc-900">📷 사진 올리기</h2>
+      <p className="mt-1.5 text-base text-zinc-600">식사나 일상 사진을 올리면 가족이 볼 수 있어요.</p>
 
-      {/* 사진 종류 선택 */}
-      <fieldset className="mt-4">
-        <legend className="text-base font-medium text-zinc-800">사진 종류</legend>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {KIND_OPTIONS.map((opt) => {
-            const selected = kind === opt.value;
-            return (
-              <button
-                key={opt.value}
-                type="button"
-                aria-pressed={selected}
-                aria-label={`사진 종류 ${opt.label}`}
-                disabled={busy}
-                onClick={() => setKind(opt.value)}
-                className={
-                  "min-h-[56px] rounded-lg border px-5 text-base font-medium focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-60 " +
-                  (selected
-                    ? "border-yellow-500 bg-yellow-100 text-zinc-900"
-                    : "border-zinc-300 bg-white text-zinc-700")
-                }
-              >
-                {opt.label}
-              </button>
-            );
-          })}
-        </div>
-      </fieldset>
-
-      {/* 설명(선택) */}
-      <div className="mt-4">
-        <label htmlFor="photo-caption" className="text-base font-medium text-zinc-800">
-          설명 (선택)
-        </label>
-        <input
-          id="photo-caption"
-          type="text"
-          value={caption}
-          onChange={(ev) => setCaption(ev.target.value)}
-          disabled={busy}
-          placeholder="예: 오늘 점심"
-          aria-label="사진 설명 (선택)"
-          className="mt-2 w-full min-h-[56px] rounded-lg border border-zinc-300 px-4 text-base focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-60"
-        />
+      {/* 사진 종류 */}
+      <div className="mt-4 flex flex-wrap gap-2">
+        {KIND_OPTIONS.map((opt) => {
+          const selected = kind === opt.value;
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              aria-pressed={selected}
+              aria-label={`사진 종류 ${opt.label}`}
+              disabled={busy}
+              onClick={() => setKind(opt.value)}
+              className={
+                "min-h-[52px] rounded-2xl border-2 px-5 text-base font-bold focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300 disabled:opacity-60 " +
+                (selected
+                  ? "border-amber-400 bg-amber-400 text-zinc-900"
+                  : "border-amber-200 bg-white text-zinc-700 hover:bg-amber-50")
+              }
+            >
+              {opt.label}
+            </button>
+          );
+        })}
       </div>
 
-      {/* 사진 고르기 — 큰 라벨 영역 */}
-      <div className="mt-4">
-        <label
-          htmlFor="photo-file"
-          aria-label="사진 고르기"
-          className="flex min-h-[56px] w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-yellow-400 bg-yellow-50 px-4 py-3 text-center text-base font-medium text-zinc-800 focus-within:ring-2 focus-within:ring-yellow-500 hover:bg-yellow-100"
-        >
-          {busy ? "사진을 보내는 중이에요…" : "여기를 눌러 사진을 고르세요"}
-        </label>
-        <input
-          id="photo-file"
-          type="file"
-          accept="image/png,image/jpeg,image/webp,image/gif"
-          onChange={handleFile}
-          disabled={busy}
-          className="sr-only"
-        />
-      </div>
+      {/* 설명 */}
+      <input
+        type="text"
+        value={caption}
+        onChange={(ev) => setCaption(ev.target.value)}
+        disabled={busy}
+        placeholder="설명 (선택) — 예: 오늘 점심"
+        aria-label="사진 설명 (선택)"
+        className="mt-3 min-h-[56px] w-full rounded-2xl border-2 border-amber-200 px-4 text-lg focus:border-amber-400 focus:ring-4 focus:ring-amber-300 focus:outline-none disabled:opacity-60"
+      />
+
+      {/* 사진 고르기 */}
+      <label
+        htmlFor="photo-file"
+        aria-label="사진 고르기"
+        className="mt-3 flex min-h-[64px] w-full cursor-pointer items-center justify-center rounded-2xl border-2 border-dashed border-amber-400 bg-amber-50 px-4 py-3 text-center text-lg font-bold text-amber-800 hover:bg-amber-100"
+      >
+        {busy ? "사진을 올리는 중이에요…" : "📸 여기를 눌러 사진 고르기"}
+      </label>
+      <input
+        id="photo-file"
+        type="file"
+        accept="image/png,image/jpeg,image/webp,image/gif"
+        onChange={handleFile}
+        disabled={busy}
+        className="sr-only"
+      />
 
       {message && (
         <div
           role="status"
+          aria-live="polite"
           className={
-            "mt-3 text-base font-medium " + (ok ? "text-green-700" : "text-red-700")
+            "mt-3 rounded-2xl px-4 py-3 text-center text-base font-semibold " +
+            (ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700")
           }
         >
           {message}
