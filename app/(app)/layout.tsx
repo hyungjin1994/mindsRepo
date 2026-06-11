@@ -16,12 +16,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-20 border-b border-amber-100/80 bg-white/85 px-4 py-2.5 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-amber-100/60 bg-white/80 px-4 py-2.5 backdrop-blur-md">
         <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-2">
           <a href="/" className="flex items-center gap-2" aria-label="minds 홈">
             <span
               aria-hidden="true"
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400 text-xl shadow-sm"
+              className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300 to-amber-500 text-xl shadow-soft"
             >
               🧠
             </span>

@@ -55,60 +55,69 @@ export default function Home() {
   return (
     <div className="mx-auto max-w-2xl px-5 py-7">
       <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900">
-        안녕하세요, {name}님 👋
+        안녕하세요, {name}님 <span className="inline-block">👋</span>
       </h1>
       <p className="mt-1.5 text-lg text-zinc-600">오늘도 만나서 반가워요.</p>
 
       {/* 포인트 · 게임 득점 */}
       <div className="mt-6 grid grid-cols-2 gap-4">
+        {/* 포인트 — 그라데이션 히어로 */}
         <Link
           href="/points"
           aria-label="포인트 보기"
-          className="rounded-3xl bg-amber-400 p-5 shadow-sm focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
+          className="group relative overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-amber-300 to-amber-500 p-5 shadow-soft focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
         >
-          <div className="text-3xl" aria-hidden="true">⭐</div>
-          <div className="mt-2 text-base font-semibold text-amber-900">포인트</div>
-          <div className="text-3xl font-extrabold text-zinc-900">
-            {points.toLocaleString()}
-            <span className="ml-1 text-xl font-bold">점</span>
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -top-5 -right-3 text-8xl opacity-20 transition-transform duration-300 group-hover:scale-110"
+          >
+            ⭐
+          </span>
+          <div className="relative">
+            <div className="text-sm font-bold text-amber-900/80">포인트</div>
+            <div className="mt-7 text-4xl font-black tracking-tight text-zinc-900">
+              {points.toLocaleString()}
+              <span className="ml-1 text-xl font-bold">점</span>
+            </div>
           </div>
         </Link>
 
+        {/* 게임 득점 */}
         <Link
           href="/games"
           aria-label="게임 하러 가기"
-          className="rounded-3xl border border-amber-100 bg-white p-5 shadow-sm focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
+          className="rounded-[1.75rem] bg-white p-5 shadow-soft focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
         >
-          <div className="text-3xl" aria-hidden="true">🎮</div>
-          <div className="mt-2 text-base font-semibold text-zinc-700">게임 득점</div>
+          <span aria-hidden="true" className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-2xl">
+            🎮
+          </span>
+          <div className="mt-4 text-sm font-bold text-zinc-500">게임 득점</div>
           {lastGame ? (
-            <div className="text-zinc-900">
-              <span className="text-3xl font-extrabold text-green-700">{lastGame.score}</span>
-              <span className="text-xl font-bold">/{lastGame.totalItems}</span>
-              <div className="mt-0.5 text-sm text-zinc-500">
-                최근: {GAME_NAMES[lastGame.gameType] ?? "게임"}
-              </div>
+            <div>
+              <span className="text-3xl font-black text-green-600">{lastGame.score}</span>
+              <span className="text-xl font-bold text-zinc-400">/{lastGame.totalItems}</span>
+              <div className="mt-0.5 text-sm text-zinc-500">최근 · {GAME_NAMES[lastGame.gameType] ?? "게임"}</div>
             </div>
           ) : (
-            <div className="text-lg font-bold text-amber-700">첫 게임 시작하기 ›</div>
+            <div className="mt-1 text-lg font-bold text-amber-700">시작하기 ›</div>
           )}
         </Link>
       </div>
 
-      {/* 가족 사진 업데이트 */}
-      <section className="mt-5 rounded-3xl border border-amber-100 bg-white p-6 shadow-sm">
+      {/* 가족 사진 */}
+      <section className="mt-4 rounded-[1.75rem] bg-white p-6 shadow-soft">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-zinc-900">📷 가족 사진</h2>
+          <h2 className="text-xl font-extrabold text-zinc-900">📷 가족 사진</h2>
           <Link
             href="/family/feed"
-            className="rounded-xl px-2 py-1 text-base font-semibold text-amber-700 hover:bg-amber-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
+            className="rounded-full px-3 py-1 text-base font-bold text-amber-700 hover:bg-amber-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
           >
             모두 보기 ›
           </Link>
         </div>
 
         {photos.length === 0 ? (
-          <div className="mt-4 rounded-2xl bg-amber-50/70 px-4 py-6 text-center text-lg text-zinc-600">
+          <div className="mt-4 rounded-2xl bg-amber-50/70 px-4 py-8 text-center text-lg text-zinc-500">
             아직 새 사진이 없어요.
           </div>
         ) : (
@@ -116,7 +125,7 @@ export default function Home() {
             {photos.slice(0, 6).map((p) => (
               <div
                 key={p.id}
-                className="aspect-square overflow-hidden rounded-2xl bg-amber-100"
+                className="aspect-square overflow-hidden rounded-2xl bg-amber-100 ring-1 ring-black/5"
                 title={p.sender ? `${p.sender}님` : undefined}
               >
                 {p.imageUrl ? (

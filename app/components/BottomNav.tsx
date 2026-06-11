@@ -29,7 +29,7 @@ export default function BottomNav() {
   return (
     <nav
       aria-label="주요 메뉴"
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-amber-100 bg-white/95 backdrop-blur"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-amber-100/70 bg-white/90 shadow-[0_-6px_24px_rgb(120_90_20_/_0.06)] backdrop-blur-md"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <ul className="mx-auto flex max-w-2xl items-stretch justify-around">
@@ -41,19 +41,19 @@ export default function BottomNav() {
                 href={tab.href}
                 aria-label={tab.label}
                 aria-current={active ? "page" : undefined}
-                className={`flex min-h-[64px] flex-col items-center justify-center gap-0.5 px-1 py-2 text-center focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300 ${
+                className={`flex min-h-[64px] flex-col items-center justify-center gap-1 px-1 py-2 text-center focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300 ${
                   active ? "text-amber-700" : "text-zinc-500"
                 }`}
               >
                 <span
                   aria-hidden="true"
-                  className={`flex h-9 w-12 items-center justify-center rounded-2xl text-2xl transition-colors ${
-                    active ? "bg-amber-100" : "bg-transparent"
+                  className={`flex h-9 w-14 items-center justify-center rounded-full text-2xl transition-all duration-200 ${
+                    active ? "scale-105 bg-amber-200" : "bg-transparent"
                   }`}
                 >
                   {tab.icon}
                 </span>
-                <span className={`text-sm ${active ? "font-bold" : "font-medium"}`}>{tab.label}</span>
+                <span className={`text-[13px] ${active ? "font-extrabold" : "font-medium"}`}>{tab.label}</span>
               </Link>
             </li>
           );
