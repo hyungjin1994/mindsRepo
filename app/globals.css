@@ -1,29 +1,77 @@
 @import "tailwindcss";
 
-/* 한국어 친화 폰트 — Pretendard. CDN 차단 시 시스템 한글 폰트(맑은 고딕/애플 SD 산돌고딕)로
-   자연 폴백하므로 글자가 깨지지 않는다. */
-@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css");
-
+/* =============================================================================
+   디자인 시스템 — OnYou(LifeOS) 라벤더/파스텔 톤을 따른다.
+   배경은 연보라빛 화이트, 카드는 흰색 + 보라빛 부드러운 그림자, 강조는 라벤더.
+   기존 코드가 쓰던 amber(노랑) 색 계열을 라벤더 램프로 "리매핑" 해서
+   화면 전체가 한 번에 라벤더로 보이게 한다.
+   ============================================================================= */
 :root {
-  --background: #fff8ec; /* 따뜻한 크림 */
-  --surface: #ffffff; /* 카드 */
-  --foreground: #2b2620; /* 따뜻한 진회색 글씨 */
-  --primary: #f59e0b; /* 강조색: 앰버(노랑) */
+  --background: #faf7ff;
+  --surface: #ffffff;
+  --surface-muted: #fcfaff;
+
+  --foreground: #2b2b45;
+  --foreground-muted: #6b6b85;
+  --foreground-weak: #a6a6b8;
+
+  --lavender: #b6a3ee;
+  --pink: #ffb5c7;
+  --mint: #8fdbb5;
+  --peach: #ffba8c;
+  --sky: #8cc7ff;
+
+  --bg-lavender: #ebe3fc;
+  --bg-pink: #ffedf0;
+  --bg-mint: #dcf5e8;
+
+  --border: #ece6f8;
+  --ring: #b6a3ee;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
   --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-foreground-weak: var(--foreground-weak);
+
+  --color-lavender: var(--lavender);
+  --color-pink: var(--pink);
+  --color-mint: var(--mint);
+  --color-peach: var(--peach);
+  --color-sky: var(--sky);
+
+  --color-bg-lavender: var(--bg-lavender);
+  --color-bg-pink: var(--bg-pink);
+  --color-bg-mint: var(--bg-mint);
+
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+
+  /* amber(노랑) 계열을 라벤더 램프로 리매핑 — 기존 amber-* 클래스가 전부 라벤더로 보인다. */
+  --color-amber-50: #f6f3fe;
+  --color-amber-100: #ece4fc;
+  --color-amber-200: #ddd0f7;
+  --color-amber-300: #c9b6f1;
+  --color-amber-400: #b6a3ee;
+  --color-amber-500: #9f86e6;
+  --color-amber-600: #8a6fd9;
+  --color-amber-700: #6f54c0;
+  --color-amber-800: #5a44a0;
+  --color-amber-900: #46367f;
+  --color-amber-950: #2f2456;
+
   --font-sans:
-    "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Malgun Gothic",
-    system-ui, sans-serif;
+    var(--font-noto-kr), Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
 }
 
-/* 부드럽고 따뜻한 카드 그림자 — 평평한 테두리 대신 살짝 떠 보이게 해서 고급스럽게. */
+/* 부드러운 보라빛 카드 그림자 — 평평한 느낌 대신 살짝 떠 보이게. */
 @utility shadow-soft {
   box-shadow:
-    0 1px 2px rgb(120 90 20 / 0.05),
-    0 10px 28px rgb(120 90 20 / 0.08);
+    0 2px 6px rgb(102 76 153 / 0.05),
+    0 10px 28px rgb(102 76 153 / 0.10);
 }
 
 /* 노년 친화 기본값: 큰 글씨. html 의 font-size 를 바꾸면 rem 기반 Tailwind text-* 가
@@ -36,13 +84,14 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   font-family:
-    "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Malgun Gothic",
-    system-ui, sans-serif;
+    var(--font-noto-kr), Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   line-height: 1.6;
-  /* 평평한 단색보다 생기 있게 — 모서리에 은은한 따뜻한 빛 */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* 은은한 라벤더·핑크 빛으로 생기 */
   background-image:
-    radial-gradient(55rem 55rem at 108% -8%, #ffe8c2 0%, transparent 55%),
-    radial-gradient(45rem 45rem at -8% 108%, #ffe1dc 0%, transparent 55%);
+    radial-gradient(50rem 50rem at 110% -10%, #efe7ff 0%, transparent 55%),
+    radial-gradient(42rem 42rem at -10% 108%, #ffeef3 0%, transparent 55%);
   background-attachment: fixed;
 }
 
@@ -56,7 +105,7 @@ textarea {
   font-family: inherit;
 }
 
-/* 누를 때 살짝 눌리는 촉감 — 앱처럼 반응감 있게. (고대비/접근성 영향 없음) */
+/* 누를 때 살짝 눌리는 촉감 — 앱처럼 반응감 있게. */
 button:not(:disabled),
 a[href] {
   transition:
@@ -76,7 +125,6 @@ button:not(:disabled):active {
 
 /* =========================================================================
    고대비 모드 (html.hc) — 흰 배경 + 진한 검정 글씨 + 또렷한 테두리/포커스.
-   장식용 배경 그라데이션을 끄고 항상 또렷하게 보이도록 한다.
    ========================================================================= */
 html.hc {
   --background: #ffffff;

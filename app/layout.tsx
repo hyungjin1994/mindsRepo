@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// 한국어 친화 가변 폰트 — OnYou 와 동일하게 Noto Sans KR 을 next/font 로 자체 호스팅.
+// (CDN @import 대신이라 안 깨지고 빠르게 뜬다.)
+const notoKr = Noto_Sans_KR({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "700", "900"],
+  variable: "--font-noto-kr",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -22,7 +21,7 @@ export const metadata: Metadata = {
 // 로그인·자식용 매직링크 화면은 이 골격만 쓰므로 군더더기 없이 보인다.
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ko" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang="ko" className={`${notoKr.variable} h-full antialiased`}>
       <body className="flex min-h-screen min-h-full flex-col">
         {/* 저장된 글자 크기·고대비 설정을 페인트 전에 복원 (설정은 /settings 에서 변경) */}
         <script

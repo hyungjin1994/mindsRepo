@@ -20,6 +20,7 @@ type Photo = { id: string; imageUrl?: string | null; sender?: string };
 
 export default function Home() {
   const [name, setName] = useState("");
+  const [greeting, setGreeting] = useState("");
   const [points, setPoints] = useState<number>(124);
   const [lastGame, setLastGame] = useState<LastGame>({ score: 8, totalItems: 10, gameType: "WORD_MATCH" });
   // 데모용 placeholder 3칸 — 실제 사진이 오면 교체됨
@@ -28,6 +29,22 @@ export default function Home() {
     { id: "p2", sender: "딸" },
     { id: "p3", sender: "손주" },
   ]);
+
+  // 시간대별 인사말 (마운트 후 계산 — 하이드레이션 불일치 방지)
+  useEffect(() => {
+    const h = new Date().getHours();
+    setGreeting(
+      h < 11
+        ? "🌅 좋은 아침이에요"
+        : h < 14
+          ? "🌞 즐거운 점심이에요"
+          : h < 18
+            ? "☀️ 기분 좋은 오후예요"
+            : h < 22
+              ? "🌆 수고한 저녁이에요"
+              : "🌙 편안한 밤이에요",
+    );
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -54,7 +71,8 @@ export default function Home() {
 
   return (
     <div className="mx-auto max-w-2xl px-5 py-7">
-      <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900">
+      {greeting && <p className="text-base font-semibold text-foreground-muted">{greeting}</p>}
+      <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-zinc-900">
         안녕하세요{name ? `, ${name}님` : ""} <span className="inline-block">👋</span>
       </h1>
       <p className="mt-1.5 text-lg text-zinc-600">오늘도 만나서 반가워요.</p>
