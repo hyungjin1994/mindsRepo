@@ -12,6 +12,7 @@ const GAME_NAMES: Record<string, string> = {
   NUMBER_CALC: "숫자 계산",
   COLOR_NAME: "색깔 맞추기",
   SEQUENCE_RECALL: "순서 기억",
+  TRIVIA: "상식 퀴즈",
 };
 
 type LastGame = { score: number; totalItems: number; gameType: string } | null;

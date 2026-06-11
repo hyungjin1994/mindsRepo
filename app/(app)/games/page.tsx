@@ -6,9 +6,10 @@ import NumberCalcGame from "../../components/games/NumberCalcGame";
 import ColorNameGame from "../../components/games/ColorNameGame";
 import MemoryMatchGame from "../../components/games/MemoryMatchGame";
 import SequenceRecallGame from "../../components/games/SequenceRecallGame";
+import TriviaGame from "../../components/games/TriviaGame";
 import { Difficulty, DIFFICULTIES } from "../../components/games/difficulty";
 
-type GameKey = "WORD_MATCH" | "MEMORY_IMAGE" | "SEQUENCE_RECALL" | "NUMBER_CALC" | "COLOR_NAME";
+type GameKey = "WORD_MATCH" | "MEMORY_IMAGE" | "SEQUENCE_RECALL" | "NUMBER_CALC" | "COLOR_NAME" | "TRIVIA";
 
 type GameInfo = {
   key: GameKey;
@@ -17,6 +18,7 @@ type GameInfo = {
 };
 
 const GAMES: GameInfo[] = [
+  { key: "TRIVIA", name: "상식 퀴즈", desc: "수도·속담·생활 상식을 맞혀요" },
   { key: "MEMORY_IMAGE", name: "카드 짝맞추기", desc: "같은 그림 카드 짝을 찾아요" },
   { key: "WORD_MATCH", name: "단어 맞추기", desc: "낱말과 어울리는 짝을 골라요" },
   { key: "SEQUENCE_RECALL", name: "순서 기억", desc: "켜지는 순서를 똑같이 눌러요" },
@@ -40,6 +42,7 @@ export default function GamesPage() {
   }
 
   const GAME_ICONS: Record<GameKey, string> = {
+    TRIVIA: "💡",
     MEMORY_IMAGE: "🃏",
     WORD_MATCH: "🧩",
     SEQUENCE_RECALL: "🔆",
@@ -126,6 +129,7 @@ export default function GamesPage() {
               >
                 난이도 바꾸기
               </button>
+              {selected === "TRIVIA" && <TriviaGame difficulty={difficulty} />}
               {selected === "MEMORY_IMAGE" && <MemoryMatchGame difficulty={difficulty} />}
               {selected === "WORD_MATCH" && <WordMatchGame difficulty={difficulty} />}
               {selected === "SEQUENCE_RECALL" && <SequenceRecallGame difficulty={difficulty} />}

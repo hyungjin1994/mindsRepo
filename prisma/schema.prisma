@@ -115,6 +115,7 @@ enum GameType {
   NUMBER_CALC       // 간단 계산
   COLOR_NAME        // 색깔 이름 맞추기 (스트룹 효과)
   SEQUENCE_RECALL   // 순서 기억
+  TRIVIA            // 상식 퀴즈 (수도/속담/생활상식)
 }
 
 enum Difficulty {

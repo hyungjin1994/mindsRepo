@@ -9,6 +9,7 @@ const GAME_TYPES: GameType[] = [
   "NUMBER_CALC",
   "COLOR_NAME",
   "SEQUENCE_RECALL",
+  "TRIVIA",
 ];
 const DIFFICULTIES: Difficulty[] = ["EASY", "MEDIUM", "HARD"];
 
